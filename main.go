@@ -74,21 +74,58 @@ func (c *Client) Get(endpoint string) (*http.Response, error) {
 	return res, nil
 }
 
-func (c *Client) GetTopGames() (*Games, error) {
+func (c *Client) GetGames(endpoint string) (*Games, error) {
 	games := new(Games)
 
-	res, err := c.Get("/games/top")
+	res, err := c.Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 
-	s, err := ioutil.ReadAll(res.Body)
+	err = fromResponseJSON(res, games)
 	if err != nil {
 		return nil, err
 	}
 
-	json.Unmarshal(s, games)
+	return games, nil
+
+}
+
+func (c *Client) GetTopGames() (*Games, error) {
+	games, err := c.GetGames("/games/top")
+	if err != nil {
+		return nil, err
+	}
 
 	return games, nil
+}
+
+func (c *Client) GetGamesFromId(id string) (*Games, error) {
+	games, err := c.GetGames("/games?id=" + id)
+	if err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}
+
+func (c *Client) GetGamesFromName(name string) (*Games, error) {
+	games, err := c.GetGames("/games?name=" + name)
+	if err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}
+
+func fromResponseJSON(res *http.Response, v interface{}) error {
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	json.Unmarshal(data, v)
+
+	return nil
 }
