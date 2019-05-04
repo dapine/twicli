@@ -43,3 +43,20 @@ func (c *Client) GetTopStreams(n uint64) (*Streams, error) {
 
 	return streams, nil
 }
+
+func (c *Client) FromGameId(id string) (*Streams, error) {
+	streams := new(Streams)
+
+	res, err := c.Get("/streams?game_id=" + id)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	err = FromResponseJSON(res, streams)
+	if err != nil {
+		return nil, err
+	}
+
+	return streams, nil
+}
