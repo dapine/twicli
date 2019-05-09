@@ -38,6 +38,15 @@ func (c *Client) GetTopGames() (*Games, error) {
 	return games, nil
 }
 
+func (c *Client) Paginate(url, before, after string) (*Games, error) {
+	games, err := c.GetGames(url + "?before=" + before + "&after=" + after)
+	if err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}
+
 func (c *Client) GetGamesFromId(id string) (*Games, error) {
 	games, err := c.GetGames("/games?id=" + id)
 	if err != nil {

@@ -28,9 +28,9 @@ func main() {
 		ShowSecondaryText(false).
 		AddItem("Quit", "", 'q', func() {
 			app.Stop()
-		})
+		}).SetSelectedFocusOnly(true)
 
-	streamList := tview.NewList()
+	streamList := tview.NewList().SetSelectedFocusOnly(true)
 
 	for _, g := range games.Data {
 		gameList.AddItem(g.Name, "", 0, func() {
