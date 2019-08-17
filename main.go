@@ -57,19 +57,45 @@ func selectGame(client Client, id string, streamList *tview.List, gameList *tvie
 		log.Fatal(err)
 	}
 
-	streamList.Clear()
+	streamList.AddItem("Back", "", 'b', func() { app.SetFocus(gameList) })
 
-	streamList.AddItem("Back", "Back to game list", 'b', func() { app.SetFocus(gameList) })
+	updatePageStreamList(streams, streamList)
 
-	for _, s := range streams.Data {
-		unf := fmt.Sprintf("\t%s - %d viewers", s.UserName, int(s.ViewerCount))
-		streamList.AddItem(s.Title, unf, 0, func() {
+	lastPage := streams.Pagination.Cursor
+
+	streamList.SetChangedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
+		fmt.Println("", shortcut)
+
+		if index+1 >= streamList.GetItemCount() {
+			strs, err := client.PaginateStreams(id, "", lastPage)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			streams.Data = append(streams.Data, strs.Data...)
+			// streams.Data = strs.Data
+			lastPage = strs.Pagination.Cursor
+
+			updatePageStreamList(streams, streamList)
+		}
+	})
+
+	app.SetFocus(streamList)
+}
+
+func updatePageStreamList(streams *Streams, streamList *tview.List) {
+	// By default, twitch API loads 20 streams on a page, so add just the last 20 streams to the UI list
+	for _, s := range streams.Data[len(streams.Data)-20:] {
+		title := fmt.Sprintf("[%d viewers] %s", int(s.ViewerCount), s.Title)
+		streamList.AddItem(title, s.UserName, 0, func() {
+			for _, d := range streams.Data {
+				fmt.Println(d.Title)
+			}
+
 			username := streams.Data[streamList.GetCurrentItem()-1].UserName
 			launchPlayer(player, "https://twitch.tv/"+username)
 		})
 	}
-
-	app.SetFocus(streamList)
 }
 
 func launchPlayer(videoPlayer string, streamLink string) {
